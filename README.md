@@ -11,7 +11,7 @@ database = defaultdb<br>
 sslmode = require<br>
 
 # How to Connect Locally
-1. Install the Postgres cli locally
+1. Install the Postgres cli locally (version 16) https://www.postgresql.org/download/
 2. Enter this command: psql "host=host port=port dbname=dbname user=username password=password sslmode=mode"
 3. Begin entering queries!
 
