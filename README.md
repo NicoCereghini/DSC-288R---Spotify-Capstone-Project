@@ -3,7 +3,7 @@ Capstone project involving Spotify data.
 
 # Database Details
 username = doadmin <br>
-password = ************************ <br><br>
+password = AVNS_kLeTuGCSss8LYr4Ocrp <br><br>
 
 host = ucsd-postgresql-sfo2-do-user-18847016-0.m.db.ondigitalocean.com<br>
 port = 25060<br>
