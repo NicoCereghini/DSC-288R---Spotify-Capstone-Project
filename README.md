@@ -2,13 +2,13 @@
 Capstone project involving Spotify data.
 
 # Database Details
-username = doadmin
-password = ************************ 
+username = doadmin <br>
+password = ************************ <br><br>
 
-host = ucsd-postgresql-sfo2-do-user-18847016-0.m.db.ondigitalocean.com
-port = 25060
-database = defaultdb
-sslmode = require
+host = ucsd-postgresql-sfo2-do-user-18847016-0.m.db.ondigitalocean.com<br>
+port = 25060<br>
+database = defaultdb<br>
+sslmode = require<br>
 
 # How to Connect Locally
 1. Install the Postgres cli locally
