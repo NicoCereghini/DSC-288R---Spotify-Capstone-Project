@@ -7,7 +7,7 @@ password = AVNS_kLeTuGCSss8LYr4Ocrp <br><br>
 
 host = ucsd-postgresql-sfo2-do-user-18847016-0.m.db.ondigitalocean.com<br>
 port = 25060<br>
-database = defaultdb<br>
+database = defaultdb (the data isn't here btw)<br>
 sslmode = require<br>
 
 # How to Connect Locally
