@@ -11,6 +11,7 @@ root_path = Path(__file__).resolve().parent.parent
 sys.path.append(str(root_path))
 
 from dataset.connection import connect_to_spotify_dataset
+from dataset.connection import select
 
 client_id = "021a86cb66bd46c5a327ef75abd802f3"
 client_secret = "ce920fd1efd948e69cf0e2794a54cd84"
@@ -54,13 +55,20 @@ async def refresh_token():
 async def main():
     print("Starting application...")
     # Start the token refresher task
-    connect_to_spotify_dataset()
+    connection = connect_to_spotify_dataset()
+    if not connection:
+        return
+    
     asyncio.create_task(refresh_token())
+    tds = select(connection, "SELECT artists, id_artists FROM track_data LIMIT 10") 
+    print("Starting ingestion...")
 
-    # Main application logic continues here
+    # Main ingestion logic
+    '''
     while True:
-        print("Main application is running.")
+        print("The main ingestion is running.")
         await asyncio.sleep(5)  # Simulate other work in the main application
+    '''
 
 if __name__ == "__main__":
     asyncio.run(main())  # Starts the asyncio event loop and runs the main coroutine
