@@ -3,6 +3,14 @@ import asyncio
 import aiohttp
 from requests import post
 import json
+import sys
+from pathlib import Path
+
+# The below makes calling the dataset module possible
+root_path = Path(__file__).resolve().parent.parent
+sys.path.append(str(root_path))
+
+from dataset.connection import connect_to_spotify_dataset
 
 client_id = "021a86cb66bd46c5a327ef75abd802f3"
 client_secret = "ce920fd1efd948e69cf0e2794a54cd84"
@@ -46,6 +54,7 @@ async def refresh_token():
 async def main():
     print("Starting application...")
     # Start the token refresher task
+    connect_to_spotify_dataset()
     asyncio.create_task(refresh_token())
 
     # Main application logic continues here
