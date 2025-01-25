@@ -30,3 +30,4 @@ def select(connection, query):
     finally:
         connection.close()
         print("Connection closed.")
+        return rows

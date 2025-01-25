@@ -15,6 +15,7 @@ from dataset.connection import select
 
 client_id = "021a86cb66bd46c5a327ef75abd802f3"
 client_secret = "ce920fd1efd948e69cf0e2794a54cd84"
+token = ""  # This will be set by the token fetcher
 
 async def get_token():
     auth_string = client_id + ":" + client_secret
@@ -40,8 +41,43 @@ async def get_token():
 def get_auth_headers(token):
     return {"Authorization": "Bearer " + token}
 
-def search_for_artist(token, artist_name):
-    url = "https://api.spotify.com/v1/search"
+async def get_albums_for_artists(token, artist_ids):
+    # artist_ids is a list, so we need to iterate over it
+    albums = []
+    for artist_id in artist_ids:
+        # Fetch the albums for the artist
+        artist_albums = await get_albums_for_artist(token, artist_id)
+        #print("Albums for artist", artist_id, ":\n", artist_albums)
+        # Get the "name" field from all indices in artist_albums in an array
+        album_names = [album["id"] for album in artist_albums]
+        albums.extend(album_names)
+    return albums
+
+async def call_api(url, headers):
+    async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()  # Parse JSON response
+                    return data
+                else:
+                    print(f"Failed to fetch albums: {response.status}")
+                    error_text = await response.text()
+                    print(f"Error details: {error_text}")
+                    return None
+
+async def get_albums_for_artist(token, artist_id):
+    # lets first get the albums for the artist to spread our net wide!
+    url = "https://api.spotify.com/v1/artists/"+artist_id+"/albums"
+    headers = get_auth_headers(token)
+    data = await call_api(url, headers)
+    return data["items"]
+        
+
+async def get_tracks_for_album(token, album_id):
+    url = "https://api.spotify.com/v1/albums/"+album_id+"/tracks"
+    headers = get_auth_headers(token)
+    data = await call_api(url, headers)
+    return data["items"]
 
 async def refresh_token():
     while True:
@@ -59,8 +95,23 @@ async def main():
     if not connection:
         return
     
+    token = await get_token()
+
+    # The below is TEST ingestion logic
+    tds = select(connection, "SELECT artists, id_artists FROM track_data LIMIT 1") 
+    print("Data returned from db: ",tds)
+    artists = tds[0][1] # get the first row of artists
+    albums = await get_albums_for_artists(token, artists)
+    print("Got the albums. Now fetching tracks...")
+    for album in albums:
+        tracks = await get_tracks_for_album(token, album)
+        for track in tracks:
+            #Harvest the attributes for a track
+            #Upload to the cluster
+            print("publising to cluster")
+
+    # End of TEST ignition logic
     asyncio.create_task(refresh_token())
-    tds = select(connection, "SELECT artists, id_artists FROM track_data LIMIT 10") 
     print("Starting ingestion...")
 
     # Main ingestion logic
