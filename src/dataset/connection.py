@@ -1,6 +1,6 @@
 import psycopg2
 from psycopg2 import sql
-import psycopg2.extras
+from psycopg2 import extras
 
 def connect_to_spotify_dataset(host="ucsd-postgresql-sfo2-do-user-18847016-0.m.db.ondigitalocean.com", 
         port="25060", database="spotify_dataset", user="doadmin", password="AVNS_kLeTuGCSss8LYr4Ocrp"):
@@ -59,7 +59,8 @@ def add_columns(connection,query):
 def batch_update(connection,query,update_values):
     try:
         with connection.cursor() as cursor:
-            psycopg2.extras.execute_batch(cursor, query, update_values)  # Execute batch updates
+            extras.execute_batch(cursor, query, update_values)  # Execute batch updates
+
             connection.commit()
             
     except psycopg2.Error as e:
