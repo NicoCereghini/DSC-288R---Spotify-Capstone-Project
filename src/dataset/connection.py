@@ -1,5 +1,6 @@
 import psycopg2
 from psycopg2 import sql
+from psycopg2 import extras
 
 def connect_to_spotify_dataset(host="ucsd-postgresql-sfo2-do-user-18847016-0.m.db.ondigitalocean.com", 
         port="25060", database="spotify_dataset", user="doadmin", password="AVNS_kLeTuGCSss8LYr4Ocrp"):
@@ -31,3 +32,43 @@ def select(connection, query):
         connection.close()
         print("Connection closed.")
         return rows
+
+def delete(connection, query):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            connection.commit()  # Commit the transaction to apply changes
+    except psycopg2.Error as e:
+        print(f"Error executing delete query: {e}")
+    finally:
+        connection.close()
+        print("Connection closed.")
+        return 
+        
+def add_columns(connection,query):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            connection.commit()
+    except psycopg2.Error as e:
+        print(f"Error adding columns to table: {e}")
+    finally:
+        print("Added Columns to db")
+        return 
+        
+def batch_update(connection,query,update_values):
+    try:
+        with connection.cursor() as cursor:
+            extras.execute_batch(cursor, query, update_values)  # Execute batch updates
+
+            connection.commit()
+            
+    except psycopg2.Error as e:
+        print(f"Error updating database: {e}")
+        
+    finally:
+        connection.close()
+        print("Connection closed.")
+        print("Database update complete.")
+        return
+
