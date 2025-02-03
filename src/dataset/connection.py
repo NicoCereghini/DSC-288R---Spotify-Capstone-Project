@@ -37,14 +37,10 @@ def delete(connection, query):
         with connection.cursor() as cursor:
             cursor.execute(query)
             connection.commit()  # Commit the transaction to apply changes
-            deletions = cursor.fetchall()
-            print(f"Successfully deleted rows with query: {query}")
     except psycopg2.Error as e:
         print(f"Error executing delete query: {e}")
     finally:
-        connection.close()
-        print("Connection closed.")
-        return deletions
+        return 
         
 def add_columns(connection,query):
     try:
@@ -53,14 +49,15 @@ def add_columns(connection,query):
             connection.commit()
     except psycopg2.Error as e:
         print(f"Error adding columns to table: {e}")
+    finally:
+        print("Added Columns to db")
+        return 
         
 def batch_update(connection,query,update_values):
     try:
         with connection.cursor() as cursor:
             execute_batch(cursor, query, update_values)  # Execute batch updates
             connection.commit()
-
-            updates = cursor.fetchall()
             
     except psycopg2.Error as e:
         print(f"Error updating database: {e}")
@@ -68,7 +65,6 @@ def batch_update(connection,query,update_values):
     finally:
         connection.close()
         print("Connection closed.")
-        return deletions
     print("Database update complete.")
-    return updates
+    return
 
