@@ -1,21 +1,36 @@
 import psycopg2
+import json
+import os
 from psycopg2 import sql
 from psycopg2 import extras
 
-def connect_to_spotify_dataset(host="ucsd-postgresql-sfo2-do-user-18847016-0.m.db.ondigitalocean.com", 
-        port="25060", database="spotify_dataset", user="doadmin", password="AVNS_kLeTuGCSss8LYr4Ocrp"):
+def connect_to_spotify_dataset(json_file='security_details.json'):
     """Connects to a PostgreSQL database and returns the connection object."""
     try:
+        # Resolve the path relative to the current file (connection.py)
+        current_dir = os.path.dirname(__file__)
+        json_path = os.path.join(current_dir, json_file)
+
+        # Load connection parameters from JSON file
+        with open(json_path, 'r') as file:
+            config = json.load(file)
+        
         # Establish the connection
         connection = psycopg2.connect(
-            host=host,
-            port=port,
-            database=database,
-            user=user,
-            password=password,
+            host=config.get('host'),
+            port=config.get('port'),
+            database=config.get('database'),
+            user=config.get('user'),
+            password=config.get('password')
         )
         print("Connection successful")
         return connection
+    except FileNotFoundError:
+        print(f"Error: The file '{json_file}' was not found.")
+        return None
+    except json.JSONDecodeError:
+        print(f"Error: The file '{json_file}' contains invalid JSON.")
+        return None
     except psycopg2.Error as e:
         print(f"Error connecting to PostgreSQL database: {e}")
         return None
