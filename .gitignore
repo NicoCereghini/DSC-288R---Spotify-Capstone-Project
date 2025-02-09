@@ -1,14 +1,16 @@
 /spotify-dataset-19212020-600k-tracks
 notes.txt
 *.pyc
-<<<<<<< Updated upstream
+
 .DS_Store
-.DS_Store
-.DS_Store
-.DS_Store
-.DS_Store
-.DS_Store
-=======
 security_details.json
 src/.DS_Store
->>>>>>> Stashed changes
+
+.DS_Store
+security_details.json
+src/.DS_Store
+
+.DS_Store
+security_details.json
+src/.DS_Store
+
