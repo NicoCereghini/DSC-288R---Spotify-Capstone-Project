@@ -2,25 +2,34 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from multiprocessing import Pool
-import time
 import digitalocean
+import time
+import json
+import os
 
 # Default partitions if the user wishes to use the default value
-# TODO: A good rule of thumb, try not to have the rows in a partition exceed the cores accross all droplets
-M = 4 
+# A good rule of thumb, try not to have the rows in a partition exceed the cores accross all droplets
+M = 12 
+droplets = []
+droplet_size_default = "s-1vcpu-1gb"
 
 def compute_partial_silhouette(part_data):
-    """Compute silhouette score for a partition."""
+    """Compute silhouette score for a partition with a 1-hour timeout."""
     data, lbls = part_data
-    return silhouette_score(data, lbls)
+    result = silhouette_score(data, lbls)
+    return result
 
-def compute_fast_silhouette(partitions, label_partitions, M, droplets):
-    print("Setting up the army of droplets...")
+def compute_fast_silhouette(partitions, label_partitions, M=M):
+    """Compute silhouette score in parallel using M droplets."""
+    print("Setting up the droplet clones...")
+    api_token = fetch_di_secret()
+    droplets = setup_droplets(api_token, droplet_count=M)
 
     # Prepare arguments for parallel execution
     partition_args = [(partitions[i], label_partitions[i]) for i in range(M)]
-    print("We are ready to compute the score in parallel!")
 
+    print("We are ready to compute the score in parallel!")
+    print("Calculating...")
     with Pool(M) as pool:
         partial_scores = pool.map(compute_partial_silhouette, partition_args)
 
@@ -29,22 +38,20 @@ def compute_fast_silhouette(partitions, label_partitions, M, droplets):
 
     print("Done! Cleaning up droplets...")
     destroy_droplets(droplets)
-    print("Droplets destroyed, you are safe to terminate your code!")
-
+    
     return global_silhouette
 
-def split_data(data, labels, M):
+def split_data(data, labels, M=M):
     """Split data and labels into M partitions."""
     partitions = np.array_split(data, M)
     label_partitions = np.array_split(labels, M)
     return partitions, label_partitions
 
-def setup_droplets(api_token, droplet_count, droplet_size="s-1vcpu-1gb", region="nyc3"):
-    droplets = []
+def setup_droplets(api_token, droplet_count, droplet_size=droplet_size_default, region="sfo2"):
     for i in range(droplet_count):
         droplet = digitalocean.Droplet(
             token=api_token,
-            name=f"kmeans-worker-{i}",
+            name=f"silhouette-clone-{i}",
             region=region,
             image="ubuntu-22-04-x64",
             size_slug=droplet_size,
@@ -56,16 +63,39 @@ def setup_droplets(api_token, droplet_count, droplet_size="s-1vcpu-1gb", region=
     return droplets
 
 def destroy_droplets(droplets):
+    """Destroy all droplets."""
     for droplet in droplets:
-        droplet.destroy()
+        try:
+            droplet.destroy()
+            print(f"Destroyed droplet: {droplet.name}")
+            droplets.remove(droplet)
+        except Exception as e:
+            print(f"[WARNING] Failed to destroy droplet {droplet.name}: {e}")
+    if(len(droplets) == 0): 
+        print("Droplets destroyed, you are safe to terminate your code!")
+    
 
+def fetch_di_secret():
+    current_dir = os.path.dirname(__file__)
+    parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
+    json_path = os.path.join(parent_dir, "dataset", "security_details.json")
+    # Load connection parameters from JSON file
+    with open(json_path, 'r') as file:
+        config = json.load(file)
+    api_token = config.get('do_api_secret')
+    return api_token
 
+def delete_all_droplets(api_token):
+    """If you accidentally exit your program and need to cleanup running droplets, 
+    use this by calling once manually."""
+    manager = digitalocean.Manager(token=api_token)
+    droplets = manager.get_all_droplets()
+    destroy_droplets(droplets)
 
 if __name__ == "__main__":
-
     # Simulate your dataset
     np.random.seed(42)
-    df_scaled = np.random.rand(70000, 13)  # 50k rows, 13 features
+    df_scaled = np.random.rand(500000, 13)  # 50k rows, 13 features
 
     # Fit KMeans once to get labels
     k = 8
@@ -73,12 +103,14 @@ if __name__ == "__main__":
     labels = kmeans.fit_predict(df_scaled)
 
     # Split dataset into M partitions
-    df_scaled = split_data(df_scaled, labels, M=4)
+    partitions, label_partitions = split_data(df_scaled, labels)
 
     #Calculate the Baseline Silhouette Score
+    '''
     start_baseline = time.perf_counter()
     baseline_silhouette = silhouette_score(df_scaled, labels)
     end_baseline = time.perf_counter()
+    '''
 
     # Compute silhouette scores in parallel
     start_parallel = time.perf_counter()
@@ -86,9 +118,10 @@ if __name__ == "__main__":
     end_parallel = time.perf_counter()
 
     print("#############################################")
+    print(f"Dataset Size: {len(df_scaled)} M partitions: {M}")
     print(f"Global Silhouette Score (Parallel): {global_silhouette:.4f}")
-    print(f"Baseline Silhouette Score: {baseline_silhouette:.4f}")
-    print(f"Baseline Time: {end_baseline - start_baseline:.2f} seconds")
+    # print(f"Baseline Silhouette Score: {baseline_silhouette:.4f}")
+    # print(f"Baseline Time: {end_baseline - start_baseline:.2f} seconds")
     print(f"Parallel Time: {end_parallel - start_parallel:.2f} seconds")
-    print(f"Compute just saved you {end_baseline - start_baseline - (end_parallel - start_parallel):.2f} seconds, WOW!!!")
+    # print(f"Compute just saved you {end_baseline - start_baseline - (end_parallel - start_parallel):.2f} seconds, WOW!!!")
     print("#############################################")
