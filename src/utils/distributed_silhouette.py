@@ -7,8 +7,8 @@ import time
 import json
 import os
 
-# Default partitions if the user wishes to use the default value
-# A good rule of thumb, don't touch these variables M unless you know what you are doing LOL
+# This class is a simple implementation of distributed silhouette score computation using DigitalOcean droplets.
+# A good rule of thumb, don't touch these insatnce variables unless you know what you are doing LOL
 class DistributedSilhouette:
     def __init__(self, M=10, droplets=None, droplet_size_default="s-1vcpu-1gb"):
         self.M = M
@@ -122,8 +122,8 @@ if __name__ == "__main__":
     print("#############################################")
     print(f"Dataset Size: {len(df_scaled)} M partitions: {distributed_silhouette.M}")
     print(f"Global Silhouette Score (Parallel): {global_silhouette:.4f}")
-    # print(f"Baseline Silhouette Score: {baseline_silhouette:.4f}")
-    # print(f"Baseline Time: {end_baseline - start_baseline:.2f} seconds")
+    print(f"Baseline Silhouette Score: {baseline_silhouette:.4f}")
+    print(f"Baseline Time: {end_baseline - start_baseline:.2f} seconds")
     print(f"Parallel Time: {end_parallel - start_parallel:.2f} seconds")
-    # print(f"Compute just saved you {end_baseline - start_baseline - (end_parallel - start_parallel):.2f} seconds, WOW!!!")
+    print(f"Compute just saved you {end_baseline - start_baseline - (end_parallel - start_parallel):.2f} seconds, WOW!!!")
     print("#############################################")
