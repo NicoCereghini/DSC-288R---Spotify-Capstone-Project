@@ -114,6 +114,10 @@ if __name__ == "__main__":
     # Split dataset into M partitions
     partitions, label_partitions = distributed_silhouette.split_data(df_scaled, labels)
 
+    start_baseline = time.perf_counter()
+    baseline_silhouette = silhouette_score(df_scaled, labels)
+    end_baseline = time.perf_counter()
+
     # Compute silhouette scores in parallel
     start_parallel = time.perf_counter()
     global_silhouette = distributed_silhouette.compute_fast_silhouette(partitions, label_partitions)
