@@ -1,6 +1,6 @@
 # DSC-288R---Spotify-Capstone-Project
 
-This project is an analysis of 3 clustering approaches based on emotion used for playlist generation using Spotify API track metadata.:musical_note: :headphones:
+This project is an analysis of 3 clustering approaches based on emotion used for playlist generation using Spotify API track metadata. :musical_note: :headphones:
 
 ### :fire: Steps to Run :fire: :rocket:
 
